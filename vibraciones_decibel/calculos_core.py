@@ -46,16 +46,21 @@ from shapely.geometry import (Point, Polygon, MultiPolygon, LineString,
 from shapely.geometry.base import BaseGeometry
 from shapely.ops import unary_union
 
+try:                       # Shapely >= 2.0
+    from shapely.errors import GEOSException
+except ImportError:        # Shapely 1.8
+    GEOSException = ValueError
+
 try:
     from contourpy import contour_generator
     _TIENE_CONTOURPY = True
-except Exception:  # pragma: no cover
+except ImportError:  # pragma: no cover
     _TIENE_CONTOURPY = False
 
 try:
     from scipy.spatial import cKDTree
     _TIENE_KDTREE = True
-except Exception:  # pragma: no cover
+except ImportError:  # pragma: no cover
     _TIENE_KDTREE = False
 
 
@@ -266,17 +271,17 @@ def _muestrear_lineas(geom_lineal, paso):
 
 
 def _mascara_interior(geom, xx, yy):
-    try:
-        import shapely
-        if hasattr(shapely, "contains_xy"):
-            return shapely.contains_xy(geom, xx, yy)
-    except Exception:
-        pass
-    try:
+    """Celdas cuyo centro cae dentro del polígono (respeta huecos)."""
+    import shapely
+    if hasattr(shapely, "contains_xy"):            # Shapely >= 2.0
+        return shapely.contains_xy(geom, xx, yy)
+    try:                                           # Shapely 1.8
         from shapely import vectorized
+    except ImportError:
+        vectorized = None
+    if vectorized is not None:
         return vectorized.contains(geom, xx, yy)
-    except Exception:
-        pass
+    # Último recurso: matplotlib Path con anillos orientados (regla nonzero).
     from matplotlib.path import Path
     from shapely.geometry.polygon import orient
     polys = geom.geoms if hasattr(geom, "geoms") else [geom]
@@ -377,15 +382,24 @@ def _filled_a_poligonos(filled):
                    if offsets[k + 1] - offsets[k] >= 4]
         if not anillos:
             continue
-        try:
-            geom = Polygon(anillos[0], holes=anillos[1:])
-            if not geom.is_valid:
-                geom = geom.buffer(0)
-            if not geom.is_empty:
-                poligonos.append(geom)
-        except Exception:
-            continue
+        geom = _poligono_de_anillos(anillos)
+        if geom is not None:
+            poligonos.append(geom)
     return poligonos
+
+
+def _poligono_de_anillos(anillos):
+    """
+    Polígono válido desde [exterior, hueco, ...] de contourpy, o None si el
+    anillo es degenerado (contourpy los genera en bordes de la malla).
+    """
+    try:
+        geom = Polygon(anillos[0], holes=anillos[1:])
+        if not geom.is_valid:
+            geom = geom.buffer(0)
+    except (ValueError, TypeError, GEOSException):
+        return None
+    return None if geom.is_empty else geom
 
 
 class _Grilla:

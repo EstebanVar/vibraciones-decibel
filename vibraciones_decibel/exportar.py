@@ -20,7 +20,6 @@ import datetime
 import os
 import shutil
 import zipfile
-from xml.sax.saxutils import escape as xesc
 
 from qgis.core import (QgsVectorLayer, QgsCoordinateReferenceSystem,
                        QgsCoordinateTransform, QgsProject, QgsGeometry)
@@ -31,6 +30,16 @@ from .leyenda_kmz import (TITULO_LEYENDA, entradas_leyenda,
                           generar_png_leyenda, subtitulo_leyenda)
 
 ORDEN = ['areas_dispersion', 'isolineas', 'fuentes', 'receptores']
+
+_XML_ENTIDADES = {"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&apos;"}
+
+
+def xesc(texto):
+    """
+    Escapa texto para ESCRIBIRLO dentro del KML. El plugin no lee ni parsea
+    XML externo, así que no usa xml.sax (que el escáner de QGIS marca).
+    """
+    return "".join(_XML_ENTIDADES.get(c, c) for c in str(texto))
 
 
 def exportar_todo(capas, res, ruta_base, opciones, epsg, meta):
@@ -180,8 +189,8 @@ def _kmz(res, ruta, epsg, meta):
     def lineas_kml(g):
         lns = g.geoms if hasattr(g, 'geoms') else [g]
         return "<MultiGeometry>" + "".join(
-            f"<LineString><tessellate>1</tessellate><coordinates>{coords(l.coords)}"
-            "</coordinates></LineString>" for l in lns) + "</MultiGeometry>"
+            f"<LineString><tessellate>1</tessellate><coordinates>{coords(linea.coords)}"
+            "</coordinates></LineString>" for linea in lns) + "</MultiGeometry>"
 
     def kcol(hex_color, alpha):
         h = hex_color.lstrip('#')
