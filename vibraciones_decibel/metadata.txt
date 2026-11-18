@@ -1,0 +1,45 @@
+# ==========================================================================
+#  Vibraciones Decibel · metadata.txt
+#  Formato INI leído por el Administrador de complementos de QGIS.
+#  Las líneas que empiezan con espacios continúan el valor de la anterior.
+# ==========================================================================
+
+[general]
+
+# --- Identificación -------------------------------------------------------
+name=Vibraciones Decibel
+version=2.1.0
+author=Esteban Vargas Carrera / Decibel
+email=esteban.vargas@decibel.cl
+
+# --- Compatibilidad -------------------------------------------------------
+qgisMinimumVersion=3.28
+qgisMaximumVersion=4.99
+supportsQt6=True
+
+# --- Descripción ----------------------------------------------------------
+description=Proyección de vibraciones de construcción (FTA 2018): Lv en VdB y PPV en in/s desde focos puntuales o áreas de proyecto, con criterios de molestia y daño.
+
+about=Proyecta vibraciones según el FTA Report No. 0123 (2018), sección 7.2,
+    desde capas de focos puntuales o áreas de proyecto.
+
+    - Modos de proyección: Iterativo (un foco), Suma (logarítmica) y
+      Lineal (sin suma; isolíneas de cada fuente disueltas).
+    - Escala de niveles por nivel mínimo, paso y cantidad de colores, con
+      escalas Amarillo → morado, Verde → morado o personalizada.
+    - Evaluación de receptores: molestia (Tabla 6-3) y daño estructural
+      (Tabla 7-5).
+    - Exportación: GeoPackage y Shapefile con estilo QML, KMZ con leyenda
+      y memoria de cálculo en CSV.
+
+tags=vibraciones,FTA,VdB,PPV,construcción,SEIA
+icon=icon.png
+
+# --- Enlaces --------------------------------------------------------------
+homepage=https://github.com/EstebanVar/vibraciones-decibel
+tracker=https://github.com/EstebanVar/vibraciones-decibel/issues
+repository=https://github.com/EstebanVar/vibraciones-decibel
+
+# --- Estado ---------------------------------------------------------------
+experimental=False
+deprecated=False
